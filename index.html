@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <script type="text/javascript" src="vendor/js/jquery-1.12.3.js"></script>
+        <script type="text/javascript" src="resources/js/souNetLibrary.js"></script>
+        <script type="text/javascript" src="resources/js/calculSouNet.js" defer></script>
+    </head>
+    <body>
+        <header>
+            <h1> Càlcul Sou Net</h1>
+        </header>
+        
+        <div>
+            <form name="sounet">
+                <div>
+                    <h2>Información Personal</h2>
+                    <label>Edad </label><input type="number" title="Edad del contribuyente" id="edat" placeholder="34" value="34" required><br>
+                    <label title="Salario Bruto Anual - Entero, sin comas ni puntos ni decimales">Introduzca Salario Bruto Anual </label> 
+                    <input type="text" id="SB" placeholder="100000" value="100000"  title="Salario Bruto Anual - Entero, sin comas ni puntos ni decimales" required>
+                    <br>
+                    <input type="checkbox" id="CONTRACTEINDEFINIT" title="Si se trata de un contrato indefinido, seleccione esta opción" checked><label title="Si se trata de un contrato indefinido, seleccione esta opción" id="lCONTRACTEINDEFINIT">Contrato indifinido</label>
+                    <div>
+                        <label>Seleccione categoria profesional</label><br>
+                        <select id="CAT_PROF">
+                            <option value="0">Ingenieros y Licenciados</option>
+                            <option value="1">Ingenieros Técnicos, Péritos y Ayudantes Titulados</option>
+                            <option value="2">Jefes Administrativos y de taller</option>
+                            <option value="3">Ayudangtes no Titulados</option>
+                            <option value="4">Oficiales Administrativos</option>
+                            <option value="5">Subalternos</option>
+                            <option value="6">Auxiliares Administrativos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Seleccione Situación Familiar</label><br>
+                        <select id="SIT_FAM">
+                            <option title="Situación 1: Soltero/a, viudo/a, divorciado/a o separado/a legalmente, con hijos solteros menores de 18 años o incapacitados judicialmente que convivan exclusivamente con el perceptor, sin convivir también con el otro progenitor, siempre que proceda consignar al menos un hijo o descendiente en el apartado scendientes y  Descendientes" value="1"> Soltero, viudo o divorciado, con hijos menores de 18 años</option>
+                            <option title="Situación 2: Perceptor casado y no separado legalmente cuyo cónyuge no obtenga rentas superiores a 1.500 euros anuales, excluidas las exentas." value="2">Casados con cónyuge (ingresos de éste &lt; 1500 euros anuales)</option>
+                            <option title="Situación 3: Perceptor cuya situación familiar es distinta de las dos anteriores (v. gr.: solteros sin hijos; casados cuyo cónyuge obtiene rentas superiores a 1.500 euros anuales, excluidas las exentas, etc.).También se marcará esta casilla cuando el perceptor no desee manifestar su situación familiar" value="3" selected>Otros (Solteros sin hijos, cónyuge &gt; 1500 euros anuales</option>
+                        </select>
+                    </div>
+                        <input type="checkbox" id="MOV_GEO" title="Movilidad Geográfica"><label title="Movilidad Geográfica" id="lMOV_GEO">Movilidad Geográfica</label>
+                        <div>
+                        <h2>Mínimo por discapacidad del contribuyente</h2>
+                        <input type="radio" name="discp" value="0" title="Contribuyente sin ningún tipo de discapacidad" id="NO_DISC" onchange="changeState(document)" checked> <label id="lNO_DISC" onclick="changeState_DISC_CONT(document, this)">Sin discapacidad </label>
+                        <br>
+                        <input type="radio" name="discp" value="1" title="Contribuyente con una discapacidad inferior a 65%" id="DISC_GEN_CONT" onchange="changeState(document)"> <label id="lDISC_GEN_CONT" onclick="changeState_DISC_CONT(document, this)">Discapacidad inferior 65%</label>
+                        <input type="checkbox" title="Incremento adicional gastos de asistencia (ayuda a terceros o movildad reducidad)" id="MOV_RED" disabled> <label id="lMOV_RED">Ayuda terceras personas o movilidad reducida</label>
+                        <br>
+                        <input type="radio" name="discp" value="2" title="Contribuyente con una discapacidad superior al 65%" id="DISC_65_CONT" onchange="changeState(document)"> <label id="lDISC_65_CONT" onclick="changeState_DISC_CONT(document, this)">Discapacidad igual o superior a 65%</label>
+                    </div>
+                </div>
+                <div>
+                    <h2>Mínimo por descedientes</h2>
+                    <label>Nº Hijos &lt 25 años </label><input type="number" title="Número de hijos inferiores a 25 años y con una renta inferior a 8000eur" id="DESC" placeholder="0" value="0" required>
+                    <br>
+                    <label>Hijos menores de 3 años </label><input type="number" title="Número de hijos menores de 3 años" placeholder="0" value="0" id="less3Years"><br>
+                    <input type="checkbox" title="Deduccción por hijos en exclusiva (SIN compartir con conyugue u otro)" placeholder="0" value="0" id="EXCLUSIVE"><label title="Deduccción por hijos en exclusiva (SIN compartir con conyugue u otro)" id="lEXCLUSIVE">Computo por entero </label><br>
+                </div>
+                <div> 
+                    <h3>Mínimo por discapacidad descendiente</h3>
+                    <label>Nº de descendientes con discapacidad general </label><input type="number" title="Mínimo por discapacidad general" id="MDISCPDL65" placeholder="0" value="0" required onchange="changeState_movD(document)">
+                    <br>
+                    <ul>
+                        <label title="Hace referencia a las personas con discapacidad inferior al 65% (discapacidad general) y que reciben ayuda terceras personas o movilidad reducida">Ayuda terceras personas o movilidad reducida </label><input type="number" title="Hace referencia a las personas con discapacidad inferior al 65% (discapacidad general) y que reciben ayuda terceras personas o movilidad reducida" id="MDISCPD_MOV" placeholder="0" value="0" onchange="changeStateMovDiscD(document)" required disabled>
+                    </ul>
+                    <label>Nº de descendientes con discapacidad del 65% o superior </label><input type="number" title="Discapacidad del 65% o superior" id="MDISCPDM65" placeholder="0" value="0" required>
+                    <br>
+                    </div>
+                <div>
+                    <h2>Mínimo por ascendientes</h2>
+                    <label>Nº Ascendientes &gt 65 años pero &lt 75 </label><input type="number" title="Número de ascendientes mayores de 65 años pero menores de 75 años" id="ASC65" placeholder="0" value="0" required>
+                    <br>
+                    <label>Nº Ascendientes &gt 75 años </label><input type="number" title="Número de ascendientes mayores de 65 años pero con menos de 75" id="ASC75" placeholder="0" value="0" required>
+                    <br>
+                    <label>Nº Ascendientes &lt 65 años con discapacidad </label><input type="number" title="Número de ascendientes menores de 65 años con algun tipo de discapacidad" id="LESS65DISC" placeholder="0" value="0" required>
+                </div>
+                
+                <div>
+                   
+                    
+                    
+                    <div> 
+                        <h3>Mínimo por discapacidad ascendiente</h3>
+                        <label>Nº de ascendientes con discapacidad general </label><input type="number" title="Mínimo por discapacidad general" id="MDISCPAL65" placeholder="0" value="0" required onchange="changeState_movA(document)">
+                        <br>
+                        <ul>
+                            <label title="Hace referencia a las personas con discapacidad inferior al 65% (discapacidad general) y que reciben ayuda terceras personas o movilidad reducida">Ayuda terceras personas o movilidad reducida </label><input type="number" title="Hace referencia a las personas con discapacidad inferior al 65% (discapacidad general) y que reciben ayuda terceras personas o movilidad reducida" id="MDISCPA_MOV" placeholder="0" value="0" required disabled>
+                        </ul>
+                    
+                        <label>Nº de ascendientes/descendientes con discapacidad del 65% o superior </label><input type="number" title="Discapacidad del 65% o superior" id="MDISCPAM65" placeholder="0" value="0" required>
+                        <br>
+                    </div>
+                </div>
+               
+                <br>
+                <input type="button" value="Calcular" onclick="calcularSouNet(document)">
+            </form>
+        </div>
+        
+        <div id="Resultats">
+            <h2>Resultados</h2>
+            <label id="rSB">Salario Bruto Anual </label><input type="text" id="iSB"> <br>
+            <label id="rSN">Salario Neto Anual </label><input type="text" id="iSN"><br>
+            <label id="rSM">Sueldo NETO mensual 12 pagas</label><input type="text" id="iSM"><br>
+            <label id="rRN">Tipo de retención aplicable en nómina</label><input type="text" id="iRN"><br>
+            <label id="rRI">Retenciones IRPF</label><input type="text" id="iRI"><br>
+            <label id="rSS">Cuotas a la SS</label><input type="text" id="iSS"><br>
+             
+            <h3>Otros datos interesantes</h3>
+            <label id="rBR">Base para calcular el tipo de retención</label><input type="text" id="iBR"><br>
+            <label id="rMPF">Mínimo Personal y Familiar para calcular el tipo de retención</label><input type="text" id="iMPF"><br>
+            <label id="rTRA">Tipo de retención aplicable</label><input type="text" id="iTRA"><br>
+            <label id="rRIC">Importe Anual de las retenciones e ingresos a cuenta</label><input type="text" id="iRIC"><br>
+        </div>
+        
+    </body>
+</html>
