@@ -92,6 +92,7 @@ console.log(person.calculBIRPF());
     console.log(person.calcularMPF());
     
     document.getElementById('iSB').value = Number(person.getSou()).toLocaleString('es') + '€'; 
+    document.getElementById('iSN').value = person.souB - person.calcuSS() - person.calculRIRPF;
     document.getElementById('iRN').value = Number(person.calculTIRPF().toFixed(2)).toLocaleString('es') + '%';
     document.getElementById('iSS').value = Number(person.calculSS().toFixed(2)).toLocaleString('es') + '€';
     
