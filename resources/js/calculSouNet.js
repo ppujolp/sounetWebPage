@@ -75,8 +75,16 @@ function calcularSouNet(document) {
 
     //checks whether is a number or not
     var patt1 = /\D/g;
-    if (SBA.match(patt1).length !== 0) {
+    
+    //Not found any character on the souB
+    if (SBA.match(patt1) !== null) {
         alert(" Por favor, introduzca el Salario Bruto Anual - Entero, sin comas ni puntos ni decimales");
+        return;
+    }
+    
+    //Sou Brut cannot be 0
+    if (SBA <= 0) {
+        alert(" Por favor, introduzca un valor correcto como Salario Bruto Anual.");
         return;
     }
            
