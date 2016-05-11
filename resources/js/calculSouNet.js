@@ -2,6 +2,9 @@
 /*
 * SBA: Salari Brut Anual
 * SNA: Salari Net Anual
+* SNM: Sou Net Mensual 12 pagues
+* SNM14: Sou Net Mensual 14 pagues
+* NP: Número de Pagues
 * CI: Contracte Indefinit
 * C: Categoria
 * SF: Situació Familiar
@@ -16,24 +19,29 @@
 * ASC: Ascendent
 * MDESC: Mínim DESC
 * MASC: Mínim ASC
-* D_CONT_LESS65: Discapacitat contribuent < 65%
-* D_CONT_MOV: Discapacitat contribuent movilitat
-* D_CONT_MORE65: Discapacitat contribuent > 65%
+* Disc_CONT_LESS65: Discapacitat contribuent < 65%
+* Disc_CONT_MOV: Discapacitat contribuent movilitat
+* Didc_CONT_MORE65: Discapacitat contribuent > 65%
 * nDISCPAL65: Núm Discpacitat Less del 65%
 * nDISCPAM65: Núm Discpacitat More del 65%
+* GD: Gastos Deducibles
 */
+
+$("#Resultats").hide();
 
 
 function calcularSouNet(document) {
-    var edat, SBA, CI, C, SF, MOV_GEO, D_CONT, D_CONT_MOV;
+    var edat, SNM14, CI, C, SF, MOV_GEO, Disc_CONT, Disc_CONT_MOV;
     var nFills, nless3,exclusiu,nFills_disc_gen, nFills_disc_More65, nFill_Mov;
     var ASC65,ASC75,LESS65DISC,MDISCPAL65,MDISCPA_MOV,MDISCPAM65;
+    var SBA, SNA, SNM, NP, TIRPF, PExtra, GD;
     var radios;
     //edat_mín
     var min_edat = 18;
     
     edat = document.getElementById('edat').value;
     SBA = document.getElementById('SB').value;
+    NP = document.getElementById('sNumPagues').value;
     CI = document.getElementById('CONTRACTEINDEFINIT').checked;
     C = document.getElementById('CAT_PROF').value;
     SF = document.getElementById('SIT_FAM').value;
@@ -42,10 +50,10 @@ function calcularSouNet(document) {
     radios = document.getElementsByName('discp');
     for (var i=0; i<radios.length; i++){
         if (radios.item(i).checked === true) {
-            D_CONT = radios.item(i).value;
+            Disc_CONT = radios.item(i).value;
         }
     }
-    D_CONT_MOV = document.getElementById('MOV_RED').checked;
+    Disc_CONT_MOV = document.getElementById('MOV_RED').checked;
     
     //Info respecte els fills
     nFills = document.getElementById('DESC').value;
@@ -65,48 +73,103 @@ function calcularSouNet(document) {
     MDISCPA_MOV = document.getElementById('MDISCPA_MOV').value;
     MDISCPAM65 = document.getElementById('MDISCPAM65').value;
 
+    //checks whether is a number or not
+    var patt1 = /\D/g;
+    if (SBA.match(patt1).length !== 0) {
+        alert(" Por favor, introduzca el Salario Bruto Anual - Entero, sin comas ni puntos ni decimales");
+        return;
+    }
            
     if(min_edat<18) {
         alert ('La edat mínima para el cálculo es de 18 años');
         return;
     }
-
     
-    var person = G$(edat,SBA,CI,C,SF,MOV_GEO,D_CONT,D_CONT_MOV);
+    //Si situació 1 com ha mínim ha de tenir un fill
+    if ((SF == 1) && (Number(nFills) === 0)) {
+         alert ('La situación familiar "1" exige que el contribuyente tenga al menos un descendiente que dé derecho a la reducción de la tributación conjunta para familiasa monoparentales.');
+        return;
+    }
+
+    //Creem l'objecte person i introduim les dades
+    var person = G$(edat,SBA,CI,C,SF,MOV_GEO,Disc_CONT,Disc_CONT_MOV);
     if (person.setDadesFills(nFills,nless3,exclusiu) < 0) {
         return;
     }
-    
+    //Introduïm la informació dels fills
     if (person.setDiscDesc(nFills_disc_gen,nFill_Mov,nFills_disc_More65) < 0) {
         return;
     }
-    
+    //we enter the dat regarding the Ascendents
     person.setNumAsc(ASC65,ASC75,LESS65DISC);
-    person.setDiscAsc(MDISCPAL65,MDISCPA_MOV,MDISCPAM65);
+    //we enter information regarding the discapacitats
+    if (person.setDiscAsc(MDISCPAL65,MDISCPA_MOV,MDISCPAM65) < 0) {
+        return;
+    }
     
     
-console.log(person.calculSS());
-console.log(person.calculBIRPF());
-    console.log(person.calcularRet2());
-    console.log(person.calculTIRPF());
-    console.log(person.calcularMPF());
+//console.log(person.calculSS());
+//console.log(person.calculBIRPF());
+  //  console.log(person.calcularRet2());
+//    console.log(person.calculTIRPF());
+//    console.log(person.calcularMPF());
+    SNA = person.souB - person.getSS() - person.calculRIRPF();
+    SNM = SNA / 12; //12 pagues
+    TIRPF = person.calculTIRPF();
+    SNM14 = calculPagues14(SBA,person.getSS(),TIRPF);
+    PExtra = calculPExtra(SBA, TIRPF);
+    GD = person.calculGD(); 
     
     document.getElementById('iSB').value = Number(person.getSou()).toLocaleString('es') + '€'; 
-    document.getElementById('iSN').value = person.souB - person.calcuSS() - person.calculRIRPF;
-    document.getElementById('iRN').value = Number(person.calculTIRPF().toFixed(2)).toLocaleString('es') + '%';
+    document.getElementById('iSN').value = Number(SNA.toFixed(2)).toLocaleString('es') + '€';
+    document.getElementById('iSM').value = Number(SNM.toFixed(2)).toLocaleString('es') + '€';
+    document.getElementById('iSM14').value = Number(SNM14.toFixed(2)).toLocaleString('es') + '€'; 
+    document.getElementById('iSMPE').value = Number(PExtra.toFixed(2)).toLocaleString('es') + '€'; 
+    document.getElementById('iRN').value = Number(TIRPF.toFixed(2)).toLocaleString('es') + '%';
+    document.getElementById('iRI').value = Number(((TIRPF * SBA)/100).toFixed(2)).toLocaleString('es') + '€';
     document.getElementById('iSS').value = Number(person.calculSS().toFixed(2)).toLocaleString('es') + '€';
     
+    //Additionnal information
     document.getElementById('iBR').value = Number(person.calculBIRPF().toFixed(2)).toLocaleString('es') + '€';
-    document.getElementById('iMPF').value = Number(person.calcularMPF().toFixed(2)).toLocaleString('es') + '€';
-    document.getElementById('iTRA').value = Number(person.calculTIRPF().toFixed(2)).toLocaleString('es') + '%';
-    document.getElementById('iRIC').value = Number(((person.calculTIRPF() * SBA)/100).toFixed(2)).toLocaleString('es') + '€';
+    document.getElementById('iMPF').value = Number(person.calcularMPF().toFixed(2)).toLocaleString('es') + '€'; 
+    document.getElementById('iDG').value = Number(GD.toFixed(2)).toLocaleString('es') + '€'; 
+    document.getElementById('iRORT').value = Number(person.getRNT().toFixed(2)).toLocaleString('es') + '€'; 
     
     
+    //We show the div resultats
+    $("#Resultats").show();
+    
+    //Regarding the Number of income we show one or another.
+    if (NP === "1") {
+        $("#14pagues").hide(); 
+        $("#12pagues").show(); 
+    } else {
+        $("#12pagues").hide();
+        $("#14pagues").show();
+    }
 
 /*
 * @Author: Pau Pujol
 */
 }
+
+//Càlcul Sou Net en 14pagues
+function calculPagues14(souB, RSS, TIRPF){
+    var SM = souB / 14;
+    var SS = RSS / 12;
+    var IRPF = SM * (TIRPF/100);
+    
+    return SM - SS - IRPF;
+    
+}
+//Càlcul Paga Extra: sou Net 14 pagues
+function calculPExtra(souB, TIRPF) {
+    var SM = souB / 14;
+    var IRPF = SM * (TIRPF/100);
+    
+    return SM - IRPF;
+}
+
 
 function changeState(document) { 
         var DISC_GEN_CONT = document.getElementById('DISC_GEN_CONT').checked;
@@ -207,6 +270,8 @@ function changeState_movA(document) {
         document.getElementById('MDISCPA_MOV').value = 0;
     }
 }
+
+
 
 
 

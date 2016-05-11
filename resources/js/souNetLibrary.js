@@ -58,10 +58,10 @@
     var D_Less75 = 1400;
     
     //Taula situació familiar
-    taula_SF = {
-        situacio1: [0, 14.266, 15803],
-        situacio2: [13.696, 14.985, 17.138],
-        situacio3: [12.000, 12.607, 13.275]
+    var taula_SF = {
+        situacio1: [0, 14266, 15803],
+        situacio2: [13696, 14985, 17138],
+        situacio3: [12000, 12607, 13275]
     };
     
 
@@ -119,10 +119,10 @@
         var D_desc = 0;
         switch(Number(nFills)) {
             case 0: D_desc = 0;break;
-            case 1: D_desc = this.taula_fills[1]; break;
-            case 2: D_desc = this.taula_fills[1] + this.taula_fills[2]; break;
-            case 3: D_desc = this.taula_fills[1] + this.taula_fills[2] + this.taula_fills[3]; break;
-            default: D_desc = this.taula_fills[1] + this.taula_fills[2] + this.taula_fills[3] + (this.taula_fills[4] * this.nFills); break;
+            case 1: D_desc = taula_fills[1]; break;
+            case 2: D_desc = taula_fills[1] + taula_fills[2]; break;
+            case 3: D_desc = taula_fills[1] + taula_fills[2] + taula_fills[3]; break;
+            default: D_desc = taula_fills[1] + taula_fills[2] + taula_fills[3] + (taula_fills[4] * nFills); break;
         }
         
         if (nless3>0) {
@@ -203,6 +203,10 @@
             RNT = 3700 - (1.15625 * (salariB - nSS - 11250));
         }
         
+        if (_DEBUG_===true) {
+                console.log("RNT: " + RNT);
+            }
+        
         return RNT;
     }
     
@@ -215,6 +219,10 @@
         
         getSou: function() {
             return this.souB;
+        },
+        
+        getSS: function() {
+            return this.SS;
         },
         
         //Càlcul Seguretat Social
@@ -273,23 +281,22 @@
         
         //Mínims Familiars
         calcularRet1: function() {
-            var MF;
-            MF = D_MP + disc_contribuent(this.D_CONT, this.D_CONT_MOV);
-            MF = MF + calc_desc(this.nFills,this.nless3,this.exclusiu);
-            MF = MF + calc_disc_desc(this.nFills_disc_gen,this.nFill_Mov,this.nFills_disc_More65,this.exclusiu);
-            MF = MF + calc_D_asc(this.ASC65,this.ASC75,this.ASCLESS65D);
-            MF = MF + calc_D_Disc_Asc(this.nDISCPAL65,this.nDISCPA_MOV,this.nDISCPAM65);
-            
-            if (_DEBUG_===true) {
-                console.log("MF: " + MF);
-            }
-            return calculRet(MF);
+            var MPF = this.calcularMPF();
+            return calculRet(MPF);
         },
         
         //Càlcul Mínim Personal i Familiar
         calcularMPF: function() {
             var MPF = 0;
             MPF = D_MP + disc_contribuent(this.D_CONT, this.D_CONT_MOV);
+            MPF = MPF + calc_desc(this.nFills,this.nless3,this.exclusiu);
+            MPF = MPF + calc_disc_desc(this.nFills_disc_gen,this.nFill_Mov,this.nFills_disc_More65,this.exclusiu);
+            MPF = MPF + calc_D_asc(this.ASC65,this.ASC75,this.ASCLESS65D);
+            MPF = MPF + calc_D_Disc_Asc(this.nDISCPAL65,this.nDISCPA_MOV,this.nDISCPAM65);
+            
+            if (_DEBUG_===true) {
+                console.log("MPF: " + MPF);
+            }
             
             return MPF;
         },
@@ -313,29 +320,29 @@
             var TIRPF = 0;
             var exempt = false;
             //Situació Familiar exempt de retenció
-            if (this.souB < this.taula_SF.situacio2[2]) {
-                if (this.SF === 1){
-                    if ((this.nFills === 1) && (this.souB < this.taula_SF.situacio1[1])){
+            if (this.souB < taula_SF.situacio1[2]) {
+                if (this.SF === "1"){
+                    if ((this.nFills === "1") && (this.souB < taula_SF.situacio1[1])){
                         exempt = true;
-                    } else if ((this.nFills > 1) && (this.souB < this.taula_SF.situacio1[2])){
+                    } else if ((this.nFills > 1) && (this.souB < taula_SF.situacio1[2])){
                         exempt = true;
                     }
                 } else if (this.SF === 2) {
-                    if ((this.nFills === 0) && (this.souB < this.taula_SF.situacio2[0])){
+                    if ((this.nFills === 0) && (this.souB < taula_SF.situacio2[0])){
                         exempt = true;
                     }
-                    if ((this.nFills === 1) && (this.souB < this.taula_SF.situacio2[1])){
+                    if ((this.nFills === 1) && (this.souB < taula_SF.situacio2[1])){
                         exempt = true;
-                    } else if ((this.nFills > 1) && (this.souB < this.taula_SF.situacio2[2])){
+                    } else if ((this.nFills > 1) && (this.souB < taula_SF.situacio2[2])){
                         exempt = true;
                     }
                 } else {
-                    if ((this.nFills === 0) && (this.souB < this.taula_SF.situacio3[0])){
+                    if ((this.nFills === 0) && (this.souB < taula_SF.situacio3[0])){
                         exempt = true;
                     }
-                    if ((this.nFills === 1) && (this.souB < this.taula_SF.situacio3[1])){
+                    if ((this.nFills === 1) && (this.souB < taula_SF.situacio3[1])){
                         exempt = true;
-                    } else if ((this.nFills > 1) && (this.souB < this.taula_SF.situacio3[2])){
+                    } else if ((this.nFills > 1) && (this.souB < taula_SF.situacio3[2])){
                         exempt = true;
                     }
                     
@@ -355,6 +362,33 @@
             return Math.floor(TIRPF*10000)/100;
         },
         
+        //Càlcul GD: Despeses deduïbles
+        calculGD: function() {
+            var GD = 0;
+            GD = this.SS + D_Rend;
+            if (this.MOV_GEO){
+                GD = GD + D_Mov_Geo;
+            }
+            
+            if (this.D_CONT == 2) {
+                GD = GD + D_P_DiscMore65;
+            } else if (this.D_CONT == 1) {
+                if (this.D_CONT_MOV===true) {
+                    GD = GD + D_P_DiscMore65;
+                } else {
+                    GD = GD + D_P_DiscLess65;
+                }
+            
+            }
+
+        
+            return GD;
+        },
+        
+        //Return the Rendiment del Treball
+        getRNT: function(){
+            return calculRNT(this.souB, this.nSS);
+        },
         
         //Fills
         setDadesFills: function(nFills,nless3,exclusiu) {
@@ -422,7 +456,7 @@
         
     };
     
-    Sounet.init = function(edat, souB, CI, C, SF, MOV_GEO,D_CONT,D_CONT_MOV) {
+    Sounet.init = function(edat, souB, CI, C, SF, MOV_GEO,D_CONT,D_CONT_MOV,nFills,nless3,exclusiu) {
         
         var self = this;
         self.edat = edat;
@@ -433,6 +467,11 @@
         self.MOV_GEO = MOV_GEO || false;
         self.D_CONT = D_CONT || 0;
         self.D_CONT_MOV = D_CONT_MOV || false;
+        self.nFills = nFills || 0;
+        self.nless3 = nless3 || 0;
+        self.exclusiu = exclusiu || false;
+        
+        self.SS = self.calculSS();
     };
     
     Sounet.init.prototype = Sounet.prototype;
