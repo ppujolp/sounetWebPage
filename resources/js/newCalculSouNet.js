@@ -85,7 +85,7 @@
     //Deducció més 65 anys però menys de 75
     var D_More65 = 1150;
     //Deducció més de 75 anys
-    var D_Less75 = 1400;
+    var D_More75 = 1400;
     
     //Taula situació familiar
     var taula_SF = {
@@ -197,7 +197,7 @@
     //Càlcul deduccions ascendents
     function calc_D_asc(ASC65,ASC75,ASCLESS65D) {
         var D_asc = 0;
-        D_asc = (ASC65 * D_More65) + (ASC75 * (D_Less75 + D_More65)) + (ASCLESS65D * D_More65);
+        D_asc = (ASC65 * D_More65) + (ASC75 * (D_More75 + D_More65)) + (ASCLESS65D * D_More65);
         return D_asc; 
     }
     
@@ -318,7 +318,17 @@
         //Càlcul Mínim Personal i Familiar
         calcularMPF: function() {
             var MPF = 0;
-            MPF = D_MP + disc_contribuent(this.D_CONT, this.D_CONT_MOV);
+            var MContribuent = 0;
+            if (this.edat < 65) {
+                MContribuent = D_MP;
+            } else if( this.edat < 75) {
+                MContribuent = D_MP + D_More65;
+            } else {
+                MContribuent = D_MP + D_More65 + D_More75;
+            }
+            
+            MPF = MContribuent;
+            MPF = MPF + disc_contribuent(this.D_CONT, this.D_CONT_MOV);
             MPF = MPF + calc_desc(this.nFills,this.nless3,this.exclusiu);
             MPF = MPF + calc_disc_desc(this.nFills_disc_gen,this.nFill_Mov,this.nFills_disc_More65,this.exclusiu);
             MPF = MPF + calc_D_asc(this.ASC65,this.ASC75,this.ASCLESS65D);
@@ -341,6 +351,10 @@
             var ret2 = this.calcularRet2();
             var ret1 = this.calcularRet1();
             var RIPF = ret2 - ret1;
+            
+            if (RIPF < 0) {
+                RIPF = 0;
+            }
             return RIPF;
         },
         
@@ -563,6 +577,11 @@ function calcularSouNet(document) {
     MDISCPAL65 = document.getElementById('MDISCPAL65').value;
     MDISCPA_MOV = document.getElementById('MDISCPA_MOV').value;
     MDISCPAM65 = document.getElementById('MDISCPAM65').value;
+    
+    if(edat<min_edat) {
+        alert ('La edat mínima para el cálculo es de 18 años');
+        return;
+    }
 
     //checks whether is a number or not
     var patt1 = /\D/g;
@@ -579,10 +598,7 @@ function calcularSouNet(document) {
         return;
     }
            
-    if(min_edat<18) {
-        alert ('La edat mínima para el cálculo es de 18 años');
-        return;
-    }
+    
     
     //Si situació 1 com ha mínim ha de tenir un fill
     if ((SF == 1) && (Number(nFills) === 0)) {
